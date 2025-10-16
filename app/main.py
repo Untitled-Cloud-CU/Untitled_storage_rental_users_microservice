@@ -79,4 +79,4 @@ async def health_check():
         "service": "users-service",
         "version": "1.0.0"
     }
-```
+
