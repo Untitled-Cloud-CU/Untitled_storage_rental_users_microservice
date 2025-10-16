@@ -177,10 +177,10 @@ storage-rental-users-service/
 └── README.md              # This file
 ```
 
-## 👥 Development Team
+## 👥 Team Member
 
-- **Sahasra** - Backend Developer
-- **Molly** - Backend Developer
+- **Sahasra** 
+- **Molly** 
 
 ## 🔗 Related Services
 
