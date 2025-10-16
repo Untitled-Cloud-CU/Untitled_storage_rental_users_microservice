@@ -12,23 +12,18 @@ app = FastAPI(
     description="""
     Microservice for managing user accounts and authentication in the Storage Rental system.
     
-    ## Features
+    **Features:**
+    - User registration and profile management
+    - User authentication and login  
+    - CRUD operations for user accounts
+    - Retrieve user rental history
+    - Auto-generated OpenAPI documentation
     
-    * User registration and profile management
-    * User authentication and login
-    * CRUD operations for user accounts
-    * Retrieve user rental history
-    * Auto-generated OpenAPI documentation
-    
-    ## Sprint 1 Status
-    
-    This is a Sprint 1 implementation with stubbed endpoints.
-    All endpoints return "NOT IMPLEMENTED" responses.
+    **Sprint 1 Status:** This is a Sprint 1 implementation with stubbed endpoints. All endpoints return "NOT IMPLEMENTED" responses.
     """,
     version="1.0.0",
     contact={
         "name": "Sahasra + Molly",
-        "email": "team@storagerental.com",
     },
     license_info={
         "name": "MIT",
@@ -41,7 +36,7 @@ app = FastAPI(
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, replace with specific origins
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -84,3 +79,4 @@ async def health_check():
         "service": "users-service",
         "version": "1.0.0"
     }
+```
