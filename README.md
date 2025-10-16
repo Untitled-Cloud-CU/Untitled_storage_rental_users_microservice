@@ -1,20 +1,9 @@
 # Storage Rental - Users Service
 
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.104.1-green.svg)](https://fastapi.tiangolo.com)
-[![Python](https://img.shields.io/badge/Python-3.9+-blue.svg)](https://www.python.org)
+
 
 Microservice for managing user accounts, authentication, and user-related operations in the Storage Rental application.
 
-## 📋 Table of Contents
-
-- [Features](#features)
-- [Technology Stack](#technology-stack)
-- [API Endpoints](#api-endpoints)
-- [Setup Instructions](#setup-instructions)
-- [Testing](#testing)
-- [Sprint 1 Status](#sprint-1-status)
-- [Project Structure](#project-structure)
-- [Development Team](#development-team)
 
 ## ✨ Features
 
@@ -203,21 +192,5 @@ This microservice is part of the larger Storage Rental Application:
 - **Web Application** - User-facing frontend
 - **Database** - Shared data persistence layer
 
-## 📄 License
-
-MIT License - See LICENSE file for details
-
-## 🤝 Contributing
-
-This is a student project for Columbia University's Cloud Computing course (W4153).
-
-## 📞 Support
-
-For questions or issues:
-- Create an issue in this repository
-- Contact the development team
-- Check the project documentation
-
----
 
 **Sprint 1 - September 2024**
