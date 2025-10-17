@@ -15,13 +15,6 @@ Microservice for managing user accounts, authentication, and user-related operat
 - Input validation using Pydantic models
 - RESTful API design
 
-## 🛠 Technology Stack
-
-- **FastAPI** - Modern, fast Python web framework
-- **Pydantic** - Data validation using Python type annotations
-- **Uvicorn** - Lightning-fast ASGI server
-- **Python 3.9+** - Programming language
-
 ## 🚀 API Endpoints
 
 ### User Management
