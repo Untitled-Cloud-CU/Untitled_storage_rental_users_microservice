@@ -12,21 +12,18 @@ app = FastAPI(
     description="""
     Microservice for managing user accounts and authentication in the Storage Rental system.
     
-    **Features:**
+    Features:
     - User registration and profile management
     - User authentication and login  
     - CRUD operations for user accounts
     - Retrieve user rental history
     - Auto-generated OpenAPI documentation
     
-    **Sprint 1 Status:** This is a Sprint 1 implementation with stubbed endpoints. All endpoints return "NOT IMPLEMENTED" responses.
+    This is a Sprint 1 implementation with stubbed endpoints. All endpoints return "NOT IMPLEMENTED" responses.
     """,
     version="1.0.0",
     contact={
         "name": "Sahasra + Molly",
-    },
-    license_info={
-        "name": "MIT",
     },
     docs_url="/docs",
     redoc_url="/redoc",
