@@ -193,4 +193,4 @@ This microservice is part of the larger Storage Rental Application:
 - **Database** - Shared data persistence layer
 
 
-**Sprint 1 - September 2024**
+
