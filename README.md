@@ -1,4 +1,4 @@
-# 🚀 Users Microservice - Advanced Features Implementation Guide
+# Users Microservice - Advanced Features Implementation Guide
 
 ## 📊 Overview
 
