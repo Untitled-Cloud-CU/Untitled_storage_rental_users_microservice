@@ -1,0 +1,3 @@
+chmod +x test_api.sh
+./test_api.sh
+
