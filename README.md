@@ -22,34 +22,34 @@ Microservice for managing user accounts, authentication, and user-related operat
 
 ### User Management
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/v1/users/` | List all users (paginated) |
-| GET | `/api/v1/users/{user_id}` | Get specific user by ID |
-| POST | `/api/v1/users/` | Create new user |
-| PUT | `/api/v1/users/{user_id}` | Update user information |
-| DELETE | `/api/v1/users/{user_id}` | Delete user account |
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| GET | `/api/v1/users/` | List all users (paginated) | No |
+| GET | `/api/v1/users/{user_id}` | Get specific user by ID | No |
+| POST | `/api/v1/users/` | Create new user | No |
+| PUT | `/api/v1/users/{user_id}` | Update user information | Yes (own account) |
+| DELETE | `/api/v1/users/{user_id}` | Delete user account | Yes (own account) |
 
 ### Authentication
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/v1/users/register` | Register new user account |
-| POST | `/api/v1/users/login` | Authenticate user and return token |
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| POST | `/api/v1/users/register` | Register new user account | No |
+| POST | `/api/v1/users/login` | Authenticate user and return JWT token | No |
 
 ### Rentals
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/v1/users/{user_id}/rentals` | Get user's rental history |
-| GET | `/api/v1/users/{user_id}/rentals/{rental_id}` | Get specific rental details |
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| GET | `/api/v1/users/{user_id}/rentals` | Get user's rental history | Yes |
+| GET | `/api/v1/users/{user_id}/rentals/{rental_id}` | Get specific rental details | Yes |
 
 ### System
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/` | Service information |
-| GET | `/health` | Health check |
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| GET | `/` | Service information | No |
+| GET | `/health` | Health check | No |
 
 ## 📦 Setup Instructions
 
