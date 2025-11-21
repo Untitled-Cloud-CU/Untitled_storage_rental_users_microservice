@@ -11,7 +11,7 @@ pydantic-settings==2.1.0
 # Database
 sqlalchemy==2.0.23
 alembic==1.13.0
-PyMySQL==1.1.0
+psycopg2-binary==2.9.9
 
 # Authentication & Security
 passlib==1.7.4
