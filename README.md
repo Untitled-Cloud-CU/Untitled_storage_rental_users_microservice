@@ -268,7 +268,7 @@ docker compose exec db psql -U storage_user -d storage_rental_users
 
 ## 📁 Project Structure
 ```
-storage-rental-users-service/
+Untitled_storage_rental_users_microservice/
 ├── .github/
 │   └── workflows/
 │       └── ci-cd.yml              # CI/CD pipeline configuration
