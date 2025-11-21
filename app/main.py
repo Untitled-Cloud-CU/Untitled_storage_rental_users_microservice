@@ -5,6 +5,11 @@ FastAPI application configuration and setup
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .routers import users
+from .config import settings
+from .database import engine, Base
+
+# Create database tables
+Base.metadata.create_all(bind=engine)
 
 # Create FastAPI application
 app = FastAPI(
@@ -14,12 +19,14 @@ app = FastAPI(
     
     Features:
     - User registration and profile management
-    - User authentication and login  
+    - User authentication and login (JWT-based)
     - CRUD operations for user accounts
     - Retrieve user rental history
     - Auto-generated OpenAPI documentation
+    - Password hashing with bcrypt
+    - Database integration with SQLAlchemy
     
-    This is a Sprint 1 implementation with stubbed endpoints. All endpoints return "NOT IMPLEMENTED" responses.
+    Sprint 2 implementation with full authentication and database support.
     """,
     version="1.0.0",
     contact={
@@ -33,7 +40,7 @@ app = FastAPI(
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=settings.origins_list,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -61,6 +68,10 @@ async def root():
             "users": "/api/v1/users",
             "register": "/api/v1/users/register",
             "login": "/api/v1/users/login"
+        },
+        "authentication": {
+            "type": "JWT Bearer Token",
+            "login_endpoint": "/api/v1/users/login"
         }
     }
 
@@ -76,4 +87,17 @@ async def health_check():
         "service": "users-service",
         "version": "1.0.0"
     }
+
+
+@app.on_event("startup")
+async def startup_event():
+    """Run on application startup"""
+    print(f"Starting {settings.app_name} v{settings.app_version}")
+    print(f"Debug mode: {settings.debug}")
+
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Run on application shutdown"""
+    print(f"Shutting down {settings.app_name}")
 
