@@ -76,4 +76,8 @@ async def health_check():
         "service": "users-service",
         "version": "1.0.0"
     }
+from .database import Base, engine
+from . import db_models  # IMPORTANT: import SQLAlchemy models, not pydantic models
 
+# Create all tables
+Base.metadata.create_all(bind=engine)
