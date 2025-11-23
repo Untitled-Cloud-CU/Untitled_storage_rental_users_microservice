@@ -182,7 +182,7 @@ Requirement fulfilled via:
 ### Final service URL:
 
 ```
-https://users-service-xxxxxx-uc.a.run.app
+https://users-service-257248974057.us-central1.run.app
 ```
 
 ---
