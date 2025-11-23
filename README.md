@@ -268,13 +268,3 @@ curl https://users-service.../api/v1/users/
 * **Molly** – Composite + Frontend Integration
 
 ---
-
-# 🎉 Status
-
-### **Sprint 1 ✔ Completed**
-
-### **Sprint 2 ✔ Completed and fully deployed**
-
-### Users Microservice meets ALL required specifications.
-
----
