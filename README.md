@@ -1,189 +1,270 @@
-# Storage Rental - Users Service
 
+# 🚀 Storage Rental – Users Microservice
 
+**Cloud Run • Cloud SQL • FastAPI • SQLAlchemy • ETags • Async Jobs • Docker**
 
 Microservice for managing user accounts, authentication, and user-related operations in the Storage Rental application.
+This service is responsible for **user identity, CRUD operations, rental associations**, and provides **robust RESTful functionality** including pagination, ETags, async processing, and linked-data responses.
 
+---
 
-## ✨ Features
+# 📌 Overview
 
-- User registration and profile management
-- User authentication (login)
-- User CRUD operations (Create, Read, Update, Delete)
-- Retrieve user rental history
-- Auto-generated OpenAPI documentation
-- Input validation using Pydantic models
-- RESTful API design
+The Storage Rental system is composed of multiple microservices—Users, Locations, and Products—plus a composite microservice and a web UI.
+The **Users Microservice** provides a clean REST API for:
 
-## 🚀 API Endpoints
+* Managing users and user profiles
+* Fetching user rental history
+* Email verification via async workflows
+* Supporting the composite microservice
+* Powering the frontend sign-in/sign-up flows
 
-### User Management
+This microservice evolved significantly between **Sprint 1** and **Sprint 2**.
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/v1/users/` | List all users (paginated) |
-| GET | `/api/v1/users/{user_id}` | Get specific user by ID |
-| POST | `/api/v1/users/` | Create new user |
-| PUT | `/api/v1/users/{user_id}` | Update user information |
-| DELETE | `/api/v1/users/{user_id}` | Delete user account |
+---
 
-### Authentication
+# 🟦 Sprint 1 Summary — What Was Completed
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/v1/users/register` | Register new user account |
-| POST | `/api/v1/users/login` | Authenticate user and return token |
+During Sprint 1, the goal was to define the full structure of the service without implementing business logic. We built the following:
 
-### Rentals
+### ✅ 1. Full REST API skeleton
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/v1/users/{user_id}/rentals` | Get user's rental history |
-| GET | `/api/v1/users/{user_id}/rentals/{rental_id}` | Get specific rental details |
+All required endpoints defined using FastAPI:
 
-### System
+* GET /users
+* GET /users/{id}
+* POST /users
+* PUT /users/{id}
+* DELETE /users/{id}
+* Authentication endpoints (register/login stubs)
+* Rental history endpoints (stubbed)
+* Health + root endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/` | Service information |
-| GET | `/health` | Health check |
+### ✅ 2. Pydantic models created
 
-## 📦 Setup Instructions
+* UserBase, UserCreate, UserUpdate
+* Rental models
+* TaskStatus (for async work, stubbed)
 
-### Prerequisites
+### ✅ 3. OpenAPI auto-documentation
 
-- Python 3.9 or higher
-- pip (Python package installer)
-- Git
+Swagger UI available at:
 
-### Installation
+```
+/docs
+```
 
-1. **Clone the repository**
+### ✅ 4. NOT IMPLEMENTED placeholder responses
+
+The skeleton returned consistent placeholder JSON so the frontend could begin integrating.
+
+### ✅ 5. CORS middleware configured
+
+Allowed communication from local frontend and composite service.
+
+### ✍️ Sprint 1 Goal Achieved
+
+A **complete structural API** ready for database integration and real business logic.
+
+---
+
+# 🟩 Sprint 2 Summary — What We Completed
+
+Sprint 2 required turning the skeleton into a **fully functional, deployed cloud microservice**.
+Here is everything we successfully built:
+
+---
+
+## ✔️ **1. Real MySQL Database Integration (Cloud SQL)**
+
+* Connected the microservice to a **Cloud SQL MySQL instance**
+* Implemented SQLAlchemy ORM models
+* Added full create/update/delete persistence
+* Enforced **unique email constraint**
+* Implemented Unix-socket Cloud Run DB connection
+
+---
+
+## ✔️ **2. CRUD Operations Fully Implemented**
+
+All core endpoints now write to the real database:
+
+* **POST** `/users` → inserts user, returns **201 Created**
+* **GET** `/users` → returns paginated + filtered results
+* **GET** `/users/{id}` → fetches DB record
+* **PUT** `/users/{id}` → updates DB, regenerates ETag
+* **DELETE** `/users/{id}` → removes user
+
+---
+
+## ✔️ **3. ETag Support (Required Feature)**
+
+Implemented on both GET and PUT:
+
+### GET users/{id}
+
+* Returns `ETag: <hash>`
+* If client sends `If-None-Match`, server responds:
+
+  * `304 Not Modified`
+
+### PUT users/{id}
+
+* Client must send `If-Match`
+* If ETag mismatches:
+
+  * `412 Precondition Failed`
+
+---
+
+## ✔️ **4. Pagination & Query Parameters**
+
+`GET /users?skip=0&limit=10&city=Boston&status=active`
+
+* Supports filtering by `city`, `state`, `status`
+* Mandatory pagination (`skip`, `limit`)
+* Matches backend requirements
+
+---
+
+## ✔️ **5. Linked Data + Relative Paths (HATEOAS)**
+
+Every user response now includes:
+
+```json
+"_links": {
+  "self": "/api/v1/users/5",
+  "rentals": "/api/v1/users/5/rentals",
+  "verify_email": "/api/v1/users/verify-email"
+}
+```
+
+---
+
+## ✔️ **6. 202 Accepted + Async Job + Polling**
+
+Requirement fulfilled via:
+
+### POST `/users/verify-email`
+
+→ returns **202 Accepted**
+→ body includes `task_id` + poll link:
+
+```json
+{
+  "task_id": "abc123",
+  "status": "accepted",
+  "_links": {
+    "poll": "/api/v1/users/jobs/abc123"
+  }
+}
+```
+
+### GET `/users/jobs/{task_id}`
+
+→ returns status progression:
+`accepted → processing → completed`
+
+---
+
+## ✔️ **7. Full Cloud Deployment**
+
+### Built using:
+
+* Cloud Build
+* Artifact Registry
+
+### Deployed to:
+
+* **Cloud Run**
+* Connected to Cloud SQL via unix socket
+
+### Final service URL:
+
+```
+https://users-service-257248974057.us-central1.run.app
+```
+
+---
+
+## ✔️ **8. Dockerized & Cloud-Ready**
+
+* Multi-stage Dockerfile
+* Production-ready Gunicorn/Uvicorn server
+* Cloud Run compatible
+
+---
+
+# 🧰 API Endpoints (Sprint 2 Final)
+
+## 👥 Users
+
+| Method | Endpoint                  | Description                                |
+| ------ | ------------------------- | ------------------------------------------ |
+| GET    | `/api/v1/users/`          | Paginated user list with filtering + links |
+| GET    | `/api/v1/users/{user_id}` | Returns user + ETag                        |
+| POST   | `/api/v1/users/`          | Create user (**201 Created**)              |
+| PUT    | `/api/v1/users/{user_id}` | Update user (**ETag required**)            |
+| DELETE | `/api/v1/users/{user_id}` | Delete user                                |
+
+## 🔐 Authentication (structure available)
+
+| POST | `/api/v1/users/register` |
+| POST | `/api/v1/users/login` |
+
+## 🔄 Async Jobs
+
+| POST | `/api/v1/users/verify-email` | 202 accepted |
+| GET | `/api/v1/users/jobs/{task_id}` | Poll |
+
+## 🏥 System
+
+| GET | `/health` |
+| GET | `/` |
+
+---
+
+# 🏗️ Architecture
+
+```
+Cloud Run (Users Service)
+        |
+        |—> Cloud SQL (MySQL)
+        |
+        |—> Composite Microservice
+        |
+        |—> Frontend (Cloud Storage Hosting)
+```
+
+---
+
+# 🚀 Local Development
+
 ```bash
-   git clone https://github.com/your-username/storage-rental-users-service.git
-   cd storage-rental-users-service
+uvicorn app.main:app --reload
 ```
 
-2. **Create virtual environment**
+Swagger Docs:
+
+```
+http://localhost:8000/docs
+```
+
+---
+
+# 🧪 Testing
+
+Use Swagger, Postman, or curl:
+
 ```bash
-   python3 -m venv venv
-   
-   # On macOS/Linux:
-   source venv/bin/activate
-   
-   # On Windows:
-   venv\Scripts\activate
+curl https://users-service.../api/v1/users/
 ```
 
-3. **Install dependencies**
-```bash
-   pip install -r requirements.txt
-```
+---
 
-4. **Run the service**
-```bash
-   uvicorn app.main:app --reload --port 8000
-```
+# 👥 Team
 
-5. **Access the API documentation**
-   - **Swagger UI**: http://localhost:8000/docs
-   - **ReDoc**: http://localhost:8000/redoc
-   - **OpenAPI JSON**: http://localhost:8000/openapi.json
+* **Sahasra** – Users Microservice
+* **Molly** – Composite + Frontend Integration
 
-## 🧪 Testing
-
-You can test the endpoints using:
-
-### Interactive Swagger UI
-Navigate to http://localhost:8000/docs and use the built-in testing interface.
-
-### cURL Commands
-```bash
-# Get all users
-curl http://localhost:8000/api/v1/users/
-
-# Get specific user
-curl http://localhost:8000/api/v1/users/1
-
-# Create new user
-curl -X POST http://localhost:8000/api/v1/users/ \
-  -H "Content-Type: application/json" \
-  -d '{
-    "first_name": "Jane",
-    "last_name": "Doe",
-    "email": "jane.doe@email.com",
-    "password": "securepassword123",
-    "phone": "555-0102"
-  }'
-
-# Login
-curl -X POST http://localhost:8000/api/v1/users/login \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "john.smith@email.com",
-    "password": "password123"
-  }'
-
-# Health check
-curl http://localhost:8000/health
-```
-
-### Postman
-Import the OpenAPI specification from `/openapi.json` into Postman for comprehensive testing.
-
-## 📊 Sprint 1 Status
-
-**Current Implementation:** Basic structure with stubbed endpoints
-
-### ✅ Completed
-- All REST endpoints defined (GET, POST, PUT, DELETE)
-- Pydantic models for data validation
-- OpenAPI documentation auto-generated
-- Returns "NOT IMPLEMENTED" stub responses
-- CORS middleware configured
-- Health check endpoint
-- Comprehensive documentation
-
-### 🚧 Coming in Sprint 2
-- Actual business logic implementation
-- Database integration (PostgreSQL/MySQL)
-- Authentication with JWT tokens
-- Password hashing (bcrypt)
-- Input validation and error handling
-- Unit and integration tests
-- Docker containerization
-- CI/CD pipeline
-
-## 📁 Project Structure
-```
-storage-rental-users-service/
-├── app/
-│   ├── __init__.py          # Package initialization
-│   ├── main.py              # FastAPI application setup
-│   ├── models.py            # Pydantic data models
-│   └── routers/
-│       ├── __init__.py      # Router package initialization
-│       └── users.py         # User endpoint implementations
-├── tests/                   # Test files (coming in Sprint 2)
-├── .gitignore              # Git ignore rules
-├── requirements.txt        # Python dependencies
-└── README.md              # This file
-```
-
-## 👥 Team Member
-
-- **Sahasra** 
-- **Molly** 
-
-## 🔗 Related Services
-
-This microservice is part of the larger Storage Rental Application:
-
-- **Users Service** (this service) - User account management
-- **Facilities Service** - Storage location and unit inventory
-- **Orders Service** - Rental agreements and payment processing
-- **Web Application** - User-facing frontend
-- **Database** - Shared data persistence layer
-
-
-
+---
