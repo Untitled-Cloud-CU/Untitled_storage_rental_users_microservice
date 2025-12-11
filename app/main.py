@@ -4,7 +4,7 @@ FastAPI application configuration and setup
 """
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from .routers import users
+from .routers import users, auth
 
 # Create FastAPI application
 app = FastAPI(
@@ -81,3 +81,6 @@ from . import db_models  # IMPORTANT: import SQLAlchemy models, not pydantic mod
 
 # Create all tables
 Base.metadata.create_all(bind=engine)
+
+
+app.include_router(auth.router)
