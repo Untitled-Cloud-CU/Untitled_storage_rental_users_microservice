@@ -19,7 +19,7 @@ app = FastAPI(
     - Retrieve user rental history
     - Auto-generated OpenAPI documentation
     
-    This is a Sprint 1 implementation with stubbed endpoints. All endpoints return "NOT IMPLEMENTED" responses.
+
     """,
     version="1.0.0",
     contact={
@@ -84,3 +84,4 @@ Base.metadata.create_all(bind=engine)
 
 
 app.include_router(auth.router)
+app.include_router(auth.router, prefix="/api/v1/auth", tags=["auth"])
