@@ -20,6 +20,8 @@ from ..database import SessionLocal
 from ..crud_users import create_user as create_user_db
 from ..crud_users import get_users as get_users_db
 import hashlib
+from fastapi.encoders import jsonable_encoder
+
 from datetime import datetime
 
 import uuid
@@ -175,6 +177,9 @@ async def get_user_by_id(
     # response = JSONResponse(content=User.model_validate(user).model_dump())
     response = JSONResponse(content=add_hateoas(user))
     response.headers["ETag"] = etag
+    payload = add_hateoas(user)
+    response = JSONResponse(content=jsonable_encoder(payload))
+    response.headers["ETag"] = etag
     return response
 
 
@@ -232,6 +237,11 @@ async def update_user(
     # response = JSONResponse(content=User.model_validate(updated_user).model_dump())
     response = JSONResponse(content=add_hateoas(updated_user))
 
+    response.headers["ETag"] = new_etag
+    new_etag = generate_etag(updated_user)
+
+    payload = add_hateoas(updated_user)
+    response = JSONResponse(content=jsonable_encoder(payload))
     response.headers["ETag"] = new_etag
     return response
 
