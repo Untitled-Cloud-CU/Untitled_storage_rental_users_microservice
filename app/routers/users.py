@@ -3,6 +3,7 @@ User endpoints
 Handles all user-related API operations
 """
 from fastapi import APIRouter, HTTPException, status, Query
+from ..db_models import UserDB
 from typing import List, Optional
 from ..models import (
     User, 
@@ -23,6 +24,10 @@ import hashlib
 import uuid
 import threading
 import time
+
+from .auth import get_current_user
+from ..db_models import UserDB
+
 
 # In-memory job status storage
 JOB_STORE = {}
@@ -97,7 +102,8 @@ async def get_users(
     city: Optional[str] = Query(None, description="Filter by city"),
     state: Optional[str] = Query(None, description="Filter by state"),
     status: Optional[str] = Query(None, description="Filter by user status (active, inactive, suspended)"),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: UserDB = Depends(get_current_user)
 ):
     """
     Retrieve list of users with pagination + filtering.
@@ -135,12 +141,16 @@ from fastapi import HTTPException
 async def get_user_by_id(
     user_id: int,
     request: Request,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: UserDB = Depends(get_current_user)
 ):
     """
     Retrieve a specific user using ETag caching.
     If client sends `If-None-Match` and ETag matches, return 304.
     """
+
+    if current_user.user_id != user_id:
+        raise HTTPException(status_code=403, detail="Forbidden: cannot view another user")
 
     # Fetch from DB
     user = db.query(UserDB).filter(UserDB.user_id == user_id).first()
@@ -182,13 +192,16 @@ async def update_user(
     user_id: int,
     user: UserUpdate,
     request: Request,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: UserDB = Depends(get_current_user),
 ):
     """
     Update a user's data.
     Supports partial updates.
     Returns updated resource with NEW ETag.
     """
+    if current_user.user_id != user_id:
+        raise HTTPException(status_code=403, detail="Forbidden: cannot update another user")
 
     # Find existing user
     existing = db.query(UserDB).filter(UserDB.user_id == user_id).first()
@@ -224,13 +237,16 @@ from ..crud_users import delete_user as delete_user_db
 async def delete_user(
     user_id: int,
     request: Request,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: UserDB = Depends(get_current_user),
 ):
     """
     Delete a user.
     Returns 204 No Content.
     Supports optional ETag precondition with If-Match header.
     """
+    if current_user.user_id != user_id:
+        raise HTTPException(status_code=403, detail="Forbidden: cannot delete another user")
 
     # Check if user exists first
     db_user = db.query(UserDB).filter(UserDB.user_id == user_id).first()
@@ -293,7 +309,8 @@ async def login_user(credentials: LoginRequest):
 @router.get("/{user_id}/rentals", response_model=List[UserRental])
 async def get_user_rentals(
     user_id: int,
-    active_only: bool = Query(False, description="Return only active rentals")
+    active_only: bool = Query(False, description="Return only active rentals"),
+    current_user: UserDB = Depends(get_current_user)
 ):
     """
     Get all rentals for a specific user
@@ -301,6 +318,8 @@ async def get_user_rentals(
     - **user_id**: The ID of the user
     - **active_only**: Filter to show only active rentals
     """
+    if current_user.user_id != user_id:
+        raise HTTPException(status_code=403, detail="Forbidden: cannot view another user's rentals")
     return {
         "message": "NOT IMPLEMENTED",
         "user_id": user_id,
@@ -309,14 +328,25 @@ async def get_user_rentals(
     }
 
 
+
 @router.get("/{user_id}/rentals/{rental_id}")
-async def get_user_rental_details(user_id: int, rental_id: int):
+async def get_user_rental_details(
+    user_id: int,
+    rental_id: int,
+    current_user: UserDB = Depends(get_current_user),  # 🔐 NEW
+):
     """
     Get detailed information about a specific rental
-    
+
     - **user_id**: The ID of the user
     - **rental_id**: The ID of the rental
     """
+    if current_user.user_id != user_id:
+        raise HTTPException(
+            status_code=403,
+            detail="Forbidden: cannot view another user's rental"
+        )
+
     return {
         "message": "NOT IMPLEMENTED",
         "user_id": user_id,

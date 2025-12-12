@@ -13,6 +13,8 @@ import jwt
 
 from google.oauth2 import id_token
 from google.auth.transport import requests as google_requests
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+
 
 from ..database import SessionLocal
 from ..models import User as UserSchema
@@ -44,11 +46,12 @@ def get_db():
     finally:
         db.close()
 
+security = HTTPBearer()
 
 # --------------------------------------------------------------------
 # Config – these should be set as env vars in Cloud Run
 # --------------------------------------------------------------------
-GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "YOUR_GOOGLE_CLIENT_ID_HERE")
+GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "257248974057-dot98i5phvsc84ckf3paksk1m6l01e1t.apps.googleusercontent.com")
 
 JWT_SECRET = os.getenv("JWT_SECRET", "CHANGE_ME_IN_PRODUCTION")
 JWT_ALGO = os.getenv("JWT_ALGO", "HS256")
@@ -103,6 +106,45 @@ def create_jwt_for_user(user: UserDB) -> str:
     if isinstance(token, bytes):  # just in case
         token = token.decode("utf-8")
     return token
+
+
+def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    db: Session = Depends(get_db),
+) -> UserDB:
+    """
+    Extract and validate JWT from:
+        Authorization: Bearer <token>
+    and return the current UserDB instance.
+
+    Used as a dependency on protected endpoints.
+    """
+    token = credentials.credentials
+
+    try:
+        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGO])
+        user_id = payload.get("sub")
+        if user_id is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid token payload",
+            )
+    except jwt.PyJWTError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired token",
+        )
+
+    # Look up the user in the database
+    user = db.query(UserDB).filter(UserDB.user_id == int(user_id)).first()
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User not found",
+        )
+
+    return user
+
 
 
 # --------------------------------------------------------------------

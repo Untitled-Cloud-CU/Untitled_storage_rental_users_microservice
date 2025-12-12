@@ -9,3 +9,6 @@ python-dotenv
 pyjwt[crypto]
 google-auth
 
+google-auth-oauthlib
+
+
