@@ -149,13 +149,14 @@ async def get_user_by_id(
     user_id: int,
     request: Request,
     db: Session = Depends(get_db),
-    current_user: UserDB = Depends(get_current_user)
+    current_user: UserDB = Depends(get_current_user),
 ):
     """
     Retrieve a specific user using ETag caching.
     If client sends `If-None-Match` and ETag matches, return 304.
     """
 
+    # Authorization: only allow a user to view their own record
     if current_user.user_id != user_id:
         raise HTTPException(status_code=403, detail="Forbidden: cannot view another user")
 
@@ -173,10 +174,7 @@ async def get_user_by_id(
         # No change → return 304 Not Modified
         return JSONResponse(status_code=304, content=None)
 
-    # Otherwise return full user object with ETag in header
-    # response = JSONResponse(content=User.model_validate(user).model_dump())
-    response = JSONResponse(content=add_hateoas(user))
-    response.headers["ETag"] = etag
+    # Build payload and JSON-serializable response
     payload = add_hateoas(user)
     response = JSONResponse(content=jsonable_encoder(payload))
     response.headers["ETag"] = etag
@@ -210,6 +208,8 @@ async def update_user(
     Supports partial updates.
     Returns updated resource with NEW ETag.
     """
+
+    # Authorization: only allow a user to update themselves
     if current_user.user_id != user_id:
         raise HTTPException(status_code=403, detail="Forbidden: cannot update another user")
 
@@ -222,24 +222,19 @@ async def update_user(
     client_etag = request.headers.get("if-match")
     current_etag = generate_etag(existing)
 
-    # If client uses optimistic concurrency:
     if client_etag and client_etag != current_etag:
         raise HTTPException(
             status_code=412,  # Precondition Failed
-            detail="ETag does not match — resource has changed"
+            detail="ETag does not match — resource has changed",
         )
 
     # Perform update
     updated_user = update_user_db(db=db, user_id=user_id, user_update=user)
 
-    # Return UPDATED resource with NEW ETag
-    new_etag = generate_etag(updated_user)
-    # response = JSONResponse(content=User.model_validate(updated_user).model_dump())
-    response = JSONResponse(content=add_hateoas(updated_user))
-
-    response.headers["ETag"] = new_etag
+    # NEW ETag after update
     new_etag = generate_etag(updated_user)
 
+    # Build payload and JSON-serializable response
     payload = add_hateoas(updated_user)
     response = JSONResponse(content=jsonable_encoder(payload))
     response.headers["ETag"] = new_etag
