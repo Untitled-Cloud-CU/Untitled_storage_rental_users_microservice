@@ -20,6 +20,7 @@ from ..database import SessionLocal
 from ..crud_users import create_user as create_user_db
 from ..crud_users import get_users as get_users_db
 import hashlib
+from datetime import datetime
 
 import uuid
 import threading
@@ -46,10 +47,14 @@ def process_email_verification(job_id: str):
 
 def generate_etag(user):
     """
-    Creates an ETag based on user_id + updated_at timestamp.
+    Creates an ETag based on user_id + a timestamp.
+    Falls back gracefully if updated_at is missing.
     """
-    raw = f"{user.user_id}-{user.updated_at.isoformat()}"
+    # Try updated_at, then created_at, then "now" as a last resort
+    ts = getattr(user, "updated_at", None) or getattr(user, "created_at", None) or datetime.utcnow()
+    raw = f"{user.user_id}-{ts.isoformat()}"
     return hashlib.sha256(raw.encode()).hexdigest()
+
 def add_hateoas(user):
     return {
         **User.model_validate(user).model_dump(),
